@@ -1,0 +1,9 @@
+CXX = g++
+CXXFLAGS = -Wall -Wextra -std=c++20 -g
+TARGET = my_program
+all: $(TARGET)
+$(TARGET): my_program.cpp
+$(CXX) $(CXXFLAGS) my_program.cpp -o $(TARGET)
+clean:
+rm -f $(TARGET)
+.PHONY: all clean
