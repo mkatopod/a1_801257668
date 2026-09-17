@@ -1,6 +1,16 @@
 # Array maximum bandwidth sweep
 
-Build the benchmark on the Linux node:
+From WSL, install the Python plotting dependency in a virtual environment:
+
+```sh
+sudo apt update
+sudo apt install python3-pip python3-venv
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
+Build the benchmark on the Linux node or from WSL:
 
 ```sh
 make -f MakeFile
@@ -20,7 +30,7 @@ required array size in bytes.
 Create the logarithmic plot with cache markers:
 
 ```sh
-python3 plot_bandwidth.py bandwidth.csv --cache-csv cache_sizes.csv
+python include/plot_bandwidth.py bandwidth.csv --cache-csv cache_sizes.csv
 ```
 
 This writes `bandwidth.png`. Compare the first sustained bandwidth drops with
