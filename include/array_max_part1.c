@@ -384,8 +384,10 @@ static void benchmark_double(size_t n, input_order_t order, int variant, int rep
 int main(int argc, char **argv) {
     size_t *sizes = NULL;
     size_t size_count = 0;
+    int owns_sizes = 0;
     input_order_t *orders = NULL;
     size_t order_count = 0;
+    int owns_orders = 0;
     int reps = DEFAULT_REPS;
 
     for (int i = 1; i < argc; ++i) {
@@ -400,11 +402,13 @@ int main(int argc, char **argv) {
                 fprintf(stderr, "invalid size list\n");
                 return 1;
             }
+            owns_sizes = 1;
         } else if (strcmp(argv[i], "--orders") == 0 && i + 1 < argc) {
             if (parse_orders(argv[++i], &orders, &order_count) != 0) {
                 fprintf(stderr, "invalid order list\n");
                 return 1;
             }
+            owns_orders = 1;
         } else if (strcmp(argv[i], "--help") == 0) {
             usage(argv[0]);
             return 0;
@@ -437,7 +441,11 @@ int main(int argc, char **argv) {
         }
     }
 
-    free(sizes);
-    free(orders);
+    if (owns_sizes) {
+        free(sizes);
+    }
+    if (owns_orders) {
+        free(orders);
+    }
     return 0;
 }
