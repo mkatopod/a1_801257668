@@ -1,0 +1,4 @@
+echo "level,bytes
+L1,1126.4
+L2,36864
+L3,51904512" > cache_sizes.csv

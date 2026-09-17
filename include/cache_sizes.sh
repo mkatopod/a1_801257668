@@ -16,7 +16,12 @@ sizes=(2048 4096 8192 16384 32768 65536 131072 262144 \
        33554432 67108864 134217728 268435456)
 
 for n in "${sizes[@]}"; do
-    bw=$(./array_max_part1 $n)
-
-    echo "$n,$bw" >> bandwidth.txt
+    bw=$(./array_max_part1 --sizes $n --orders random --reps 12 | awk -F'rate=' '/rate=/{val=$2} END{print val}' | awk '{print $1 * 1024 * 1024}')
+    if [ -n "$bw" ]; then
+        echo "$n,$bw" >> bandwidth.txt
+    fi
 done
+
+
+
+

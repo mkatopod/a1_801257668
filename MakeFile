@@ -1,12 +1,14 @@
 CFLAGS = -O2 -Wall -Wextra -std=c11
-TARGET = array_max_part1
-SOURCE = include/array_max_part1.c
+TARGETS = array_max_part1 prefix_sum_part2
 
-all: $(TARGET)
+all: $(TARGETS)
 
-$(TARGET): $(SOURCE) include/timing.h
-	$(CC) $(CFLAGS) $(SOURCE) -o $(TARGET)
+array_max_part1: include/array_max_part1.c include/timing.h
+	$(CC) $(CFLAGS) $< -o $@
+
+prefix_sum_part2: include/prefix_sum_part2.c include/timing.h
+	$(CC) $(CFLAGS) $< -o $@
 
 clean:
-	rm -f $(TARGET)
+	rm -f $(TARGETS)
 .PHONY: all clean
