@@ -7,3 +7,16 @@ lscpu | awk '
   /L2 cache:/  { gsub(/K/, "", $3); print "L2," $3 * 1024 }
   /L3 cache:/  { gsub(/M/, "", $3); print "L3," $3 * 1024 * 1024 }
 '
+
+gcc -O3 array_max_part1.c -o array_max_part1
+echo "array_bytes,bandwidth_bytes_per_s" > bandwidth.txt
+
+sizes=(2048 4096 8192 16384 32768 65536 131072 262144 \
+       524288 1048576 2097152 4194304 8388608 16777216 \
+       33554432 67108864 134217728 268435456)
+
+for n in "${sizes[@]}"; do
+    bw=$(./array_max_part1 $n)
+
+    echo "$n,$bw" >> bandwidth.txt
+done
