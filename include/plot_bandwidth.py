@@ -1,26 +1,50 @@
 import argparse
 import csv
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 
 
 def read_cache_sizes(path):
     with open(path, newline="") as handle:
-        return {row["level"]: int(row["bytes"]) for row in csv.DictReader(handle)}
+        return {row["level"]: float(row["bytes"]) for row in csv.DictReader(handle)}
+
+
+def read_bandwidth(path):
+    with open(path, newline="") as handle:
+        rows = list(csv.DictReader(handle))
+
+    if not rows:
+        raise ValueError(f"no benchmark rows found in {path}")
+
+    if "bandwidth_bytes_per_s" in rows[0]:
+        return (
+            [int(row["array_bytes"]) for row in rows],
+            [float(row["bandwidth_bytes_per_s"]) for row in rows],
+        )
+
+    if "bandwidth" in rows[0]:
+        return (
+            [int(row["array_bytes"]) for row in rows],
+            [float(row["bandwidth"]) for row in rows],
+        )
+
+    raise ValueError(
+        "benchmark CSV must contain bandwidth_bytes_per_s or bandwidth column"
+    )
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("csv_file")
-    parser.add_argument("--cache-csv", default="cache_sizes.csv")
+    parser.add_argument(
+        "--cache-csv", default=Path(__file__).with_name("cache_sizes.csv")
+    )
     parser.add_argument("--output", default="bandwidth.png")
     args = parser.parse_args()
 
-    with open(args.csv_file, newline="") as handle:
-        rows = list(csv.DictReader(handle))
-
-    array_bytes = [int(row["array_bytes"]) for row in rows]
-    bandwidth = [float(row["bandwidth_bytes_per_s"]) / (1024 ** 3) for row in rows]
+    array_bytes, bandwidth_bytes_per_s = read_bandwidth(args.csv_file)
+    bandwidth = [value / (1024 ** 3) for value in bandwidth_bytes_per_s]
     cache_sizes = read_cache_sizes(args.cache_csv)
 
     plt.figure(figsize=(8, 5))
