@@ -1,9 +1,12 @@
-CXX = g++
-CXXFLAGS = -Wall -Wextra -std=c++20 -g
-TARGET = my_program
+CFLAGS = -O2 -Wall -Wextra -std=c11
+TARGET = array_max_part1
+SOURCE = include/array_max_part1.c
+
 all: $(TARGET)
-$(TARGET): my_program.cpp
-$(CXX) $(CXXFLAGS) my_program.cpp -o $(TARGET)
+
+$(TARGET): $(SOURCE) include/timing.h
+	$(CC) $(CFLAGS) $(SOURCE) -o $(TARGET)
+
 clean:
-rm -f $(TARGET)
+	rm -f $(TARGET)
 .PHONY: all clean

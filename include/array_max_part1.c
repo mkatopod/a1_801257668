@@ -6,7 +6,8 @@
 #include "timing.h"
 
 #define DEFAULT_REPS 12
-#define ARRAY_MAX_SIZES 3
+#define SWEEP_MIN_BYTES 2048ULL
+#define SWEEP_MAX_BYTES (256ULL * 1024ULL * 1024ULL)
 
 typedef enum {
     ORDER_SORTED,
@@ -29,8 +30,9 @@ typedef struct {
 
 static void usage(const char *prog) {
     fprintf(stderr,
-            "Usage: %s [--reps N] [--sizes 1000000,10000000,100000000] [--orders sorted,reverse,random]\n",
-            prog);
+            "Usage: %s [--reps N] [--sizes 1000000,10000000,100000000] [--orders sorted,reverse,random]\n"
+            "       %s --sweep [--reps N]\n",
+            prog, prog);
 }
 
 static void fill_sorted_int(int *a, size_t n) {
@@ -309,7 +311,8 @@ static void benchmark_int(size_t n, input_order_t order, int variant, int reps, 
     free(a);
 }
 
-static void benchmark_double(size_t n, input_order_t order, int variant, int reps, bench_result_t *result) {
+static void benchmark_double(size_t n, input_order_t order, int variant, int reps,
+                             int csv, bench_result_t *result) {
     double *a = malloc(n * sizeof(*a));
     if (a == NULL) {
         fprintf(stderr, "malloc failed for double array of size %zu\n", n);
@@ -323,7 +326,12 @@ static void benchmark_double(size_t n, input_order_t order, int variant, int rep
         default: break;
     }
 
-    uint64_t times[DEFAULT_REPS];
+    uint64_t *times = malloc((size_t)reps * sizeof(*times));
+    if (times == NULL) {
+        fprintf(stderr, "malloc failed for timing samples\n");
+        free(a);
+        exit(1);
+    }
     double warmup_result = 0.0;
     double result_value = 0.0;
 
@@ -364,20 +372,31 @@ static void benchmark_double(size_t n, input_order_t order, int variant, int rep
     result->avg_ns_per_elem = (double)result->avg_ns / (double)n;
     result->avg_bytes_per_s = ((double)n * sizeof(double)) / ((double)result->avg_ns / 1e9);
 
-    printf("%s %s %s n=%zu reps=%d avg=%.3f us median=%.3f us min=%.3f us max=%.3f us rate=%.3f MB/s ns/elem=%.3f result=%.6f\n",
-           type_name(result->type),
-           variant_name(result->variant),
-           order_name(order),
-           n,
-           reps,
-           (double)result->avg_ns / 1000.0,
-           (double)result->median_ns / 1000.0,
-           (double)result->min_ns / 1000.0,
-           (double)result->max_ns / 1000.0,
-           result->avg_bytes_per_s / (1024.0 * 1024.0),
-           result->avg_ns_per_elem,
-           result_value);
+    if (csv) {
+        printf("%zu,%.3f,%.3f,%.3f,%.6f,%.6f\n",
+               n * sizeof(double),
+               result->avg_bytes_per_s,
+               (double)result->avg_ns / 1000.0,
+               (double)result->median_ns / 1000.0,
+               result->avg_ns_per_elem,
+               result_value);
+    } else {
+        printf("%s %s %s n=%zu reps=%d avg=%.3f us median=%.3f us min=%.3f us max=%.3f us rate=%.3f MB/s ns/elem=%.3f result=%.6f\n",
+               type_name(result->type),
+               variant_name(result->variant),
+               order_name(order),
+               n,
+               reps,
+               (double)result->avg_ns / 1000.0,
+               (double)result->median_ns / 1000.0,
+               (double)result->min_ns / 1000.0,
+               (double)result->max_ns / 1000.0,
+               result->avg_bytes_per_s / (1024.0 * 1024.0),
+               result->avg_ns_per_elem,
+               result_value);
+    }
 
+    free(times);
     free(a);
 }
 
@@ -389,6 +408,7 @@ int main(int argc, char **argv) {
     size_t order_count = 0;
     int owns_orders = 0;
     int reps = DEFAULT_REPS;
+    int sweep = 0;
 
     for (int i = 1; i < argc; ++i) {
         if (strcmp(argv[i], "--reps") == 0 && i + 1 < argc) {
@@ -409,6 +429,8 @@ int main(int argc, char **argv) {
                 return 1;
             }
             owns_orders = 1;
+        } else if (strcmp(argv[i], "--sweep") == 0) {
+            sweep = 1;
         } else if (strcmp(argv[i], "--help") == 0) {
             usage(argv[0]);
             return 0;
@@ -416,6 +438,15 @@ int main(int argc, char **argv) {
             usage(argv[0]);
             return 1;
         }
+    }
+
+    if (sweep) {
+        printf("array_bytes,bandwidth_bytes_per_s,avg_us,median_us,ns_per_element,result\n");
+        for (size_t bytes = SWEEP_MIN_BYTES; bytes <= SWEEP_MAX_BYTES; bytes *= 2) {
+            bench_result_t result;
+            benchmark_double(bytes / sizeof(double), ORDER_RANDOM, 1, reps, 1, &result);
+        }
+        return 0;
     }
 
     if (sizes == NULL) {
@@ -435,8 +466,8 @@ int main(int argc, char **argv) {
             bench_result_t r_int_a, r_int_b, r_double_a, r_double_b;
             benchmark_int(sizes[i], orders[j], 0, reps, &r_int_a);
             benchmark_int(sizes[i], orders[j], 1, reps, &r_int_b);
-            benchmark_double(sizes[i], orders[j], 0, reps, &r_double_a);
-            benchmark_double(sizes[i], orders[j], 1, reps, &r_double_b);
+            benchmark_double(sizes[i], orders[j], 0, reps, 0, &r_double_a);
+            benchmark_double(sizes[i], orders[j], 1, reps, 0, &r_double_b);
             (void)r_int_a; (void)r_int_b; (void)r_double_a; (void)r_double_b;
         }
     }
