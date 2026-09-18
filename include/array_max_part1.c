@@ -253,7 +253,7 @@ static void benchmark_int(size_t n, input_order_t order, int variant, int reps, 
         default: break;
     }
 
-    uint64_t times[DEFAULT_REPS];
+    uint64_t times[DEFAULT_REPS] = {0};
     int warmup_result = 0;
     int result_value = 0;
 
@@ -326,7 +326,7 @@ static void benchmark_double(size_t n, input_order_t order, int variant, int rep
         default: break;
     }
 
-    uint64_t *times = malloc((size_t)reps * sizeof(*times));
+    uint64_t *times = calloc((size_t)reps * sizeof(*times));
     if (times == NULL) {
         fprintf(stderr, "malloc failed for timing samples\n");
         free(a);

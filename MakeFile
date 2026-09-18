@@ -1,14 +1,19 @@
-CFLAGS = -O2 -Wall -Wextra -std=c11
-TARGETS = array_max_part1 prefix_sum_part2
+CC = gcc
+CFLAGS = -Wall -Wextra -std=c11 -I$(CURDIR)/include
+OPT_LEVEL ?= O2
+LDFLAGS = -lrt
+TARGETS = array_max_part1 prefix_sum
 
 all: $(TARGETS)
 
-array_max_part1: include/array_max_part1.c include/timing.h
-	$(CC) $(CFLAGS) $< -o $@
+array_max_part1: src/array_max_part1.c include/timing.h
+	$(CC) $(CFLAGS) -$(OPT_LEVEL) src/array_max_part1.c -o array_max_part1 $(LDFLAGS)
 
-prefix_sum_part2: include/prefix_sum_part2.c include/timing.h
-	$(CC) $(CFLAGS) $< -o $@
+prefix_sum: src/prefix_sum.c include/timing.h
+	$(CC) $(CFLAGS) -$(OPT_LEVEL) src/prefix_sum.c -o prefix_sum $(LDFLAGS)
 
 clean:
 	rm -f $(TARGETS)
+
 .PHONY: all clean
+
