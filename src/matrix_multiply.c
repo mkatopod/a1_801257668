@@ -112,7 +112,7 @@ int main(int argc, char **argv) {
     if ((argc == 4 || argc == 5) && parse_positive(argv[1], &m) &&
         parse_positive(argv[2], &k) && parse_positive(argv[3], &n)) {
         if (argc == 5 && !parse_positive(argv[4], &reps)) {
-            fprintf(stderr, "dimensions and reps need to be positive integers\n");
+            fprintf(stderr, "dimensions/reps need to be positive integers\n");
             return 1;
         }
     } else if (argc != 1) {
@@ -169,7 +169,7 @@ int main(int argc, char **argv) {
                m, k, n, orders[order_index].name, reps,
                average_seconds * 1e6, gflops, correct ? "yes" : "no");
         if (!correct) {
-            fprintf(stderr, "%s produced an incorrect result\n");
+             fprintf(stderr, "%s produced an incorrect result\n", orders[order_index].name);
             free(a);
             free(b);
             free(reference);
