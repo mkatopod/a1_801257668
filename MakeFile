@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -Wall -Wextra -std=c11 -I$(CURDIR)/include
 OPT_LEVEL ?= O2
 LDFLAGS = -lrt
-TARGETS = array_max_part1 prefix_sum
+TARGETS = array_max_part1 prefix_sum matrix_multiply
 
 all: $(TARGETS)
 
@@ -11,6 +11,9 @@ array_max_part1: src/array_max_part1.c include/timing.h
 
 prefix_sum: src/prefix_sum.c include/timing.h
 	$(CC) $(CFLAGS) -$(OPT_LEVEL) src/prefix_sum.c -o prefix_sum $(LDFLAGS)
+
+matrix_multiply: src/matrix_multiply.c include/timing.h
+	$(CC) $(CFLAGS) -$(OPT_LEVEL) src/matrix_multiply.c -o matrix_multiply $(LDFLAGS)
 
 clean:
 	rm -f $(TARGETS)
