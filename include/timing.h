@@ -1,4 +1,4 @@
-#ifndef TIMING_H
+/*#ifndef TIMING_H
 #define TIMING_H
 
 #include <stdint.h>
@@ -17,26 +17,7 @@ static inline uint64_t monotonic_ns(void) {
 	}
 	QueryPerformanceCounter(&counter);
 	return (uint64_t)((counter.QuadPart * 1000000000ULL) / frequency.QuadPart);
-}
-#else
-#include <time.h>
-
-static inline uint64_t monotonic_ns(void) {
-	struct timespec timestamp;
-	clock_gettime(CLOCK_MONOTONIC, &timestamp);
-	return (uint64_t)timestamp.tv_sec * 1000000000ULL +
-		   (uint64_t)timestamp.tv_nsec;
-}
-#endif
-
-#endif
-
-
-
-
-
-
-
+}*/
 
 
 #define _POSIX_C_SOURCE 200809L
