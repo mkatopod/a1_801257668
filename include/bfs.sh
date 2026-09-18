@@ -28,7 +28,14 @@ mkdir -p "$output_dir"
 
 make -f "$makefile" bfs OPT_LEVEL="${OPT_LEVEL:-O3}"
 
-python3 - "$vertices" "$edges" "$output_dir/erdos_renyi.mtx" erdos "${BFS_SEED:-4145}" <<'PY'
+for model in erdos rmat; do
+    if [ "$model" = erdos ]; then
+        graph_name=erdos_renyi
+    else
+        graph_name=rmat
+    fi
+
+    python3 - "$vertices" "$edges" "$output_dir/${graph_name}.mtx" "$model" "${BFS_SEED:-4145}" <<'PY'
 import random
 import sys
 
@@ -71,11 +78,6 @@ with open(path, "w", buffering=1024 * 1024) as output:
         output.write(f"{left + 1} {right + 1}\n")
         written += 1
 PY
-
-for graph in erdos_renyi rmat; do
-    if [ "$graph" = rmat ]; then
-        python3 - "$vertices" "$edges" "$output_dir/rmat.mtx" rmat "${BFS_SEED:-4145}" < /dev/null >/dev/null
-    fi
 done
 
 for graph in "$output_dir/erdos_renyi.mtx" "$output_dir/rmat.mtx"; do
