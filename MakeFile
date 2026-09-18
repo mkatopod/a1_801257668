@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -Wall -Wextra -std=c11 -I$(CURDIR)/include
 OPT_LEVEL ?= O2
 LDFLAGS = -lrt
-TARGETS = array_max_part1 prefix_sum matrix_multiply
+TARGETS = array_max_part1 prefix_sum matrix_multiply merge_sort
 
 all: $(TARGETS)
 
@@ -14,6 +14,9 @@ prefix_sum: src/prefix_sum.c include/timing.h
 
 matrix_multiply: src/matrix_multiply.c include/timing.h
 	$(CC) $(CFLAGS) -$(OPT_LEVEL) src/matrix_multiply.c -o matrix_multiply $(LDFLAGS)
+
+merge_sort: src/merge_sort.c include/timing.h
+	$(CC) $(CFLAGS) -$(OPT_LEVEL) src/merge_sort.c -o merge_sort $(LDFLAGS)
 
 clean:
 	rm -f $(TARGETS)
