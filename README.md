@@ -48,6 +48,7 @@ The program computes an exclusive prefix sum for integer and double arrays.
 ```sh
 sh include/prefix_sum.sh
 ```
+
 - Sizes: `10^6`, `10^7`, and `10^8`
 - Repetitions: 5 by default; set `REPS=12` for 12 repetitions
 - Optimization levels: `O0`, `O2`, `O3`
@@ -64,13 +65,12 @@ sh include/prefix_sum.sh
 **Files:** `src/matrix_multiply.c`, `include/matrix_multiply.sh`
 
 The program computes $C = AB$ using flat row-major arrays and implements all
-six loop orders: `ijk`, `ikj`, `jik`, `jki`, `kij`, and `kji`.
+six loops: `ijk`, `ikj`, `jik`, `jki`, `kij`, and `kji`.
 
 ```sh
 sh include/matrix_multiply.sh
 ```
 
-- Shapes: `256^3`, `512^3`, `1024^3`, and `256 x 512 x 1024`
 - Repetitions: 3 by default
 - Statistic: GFLOP/s
 - Correctness: every order must report `yes`
@@ -87,7 +87,7 @@ sh include/matrix_multiply.sh
 **Files:** `src/merge_sort.c`, `include/merge_sort.sh`
 
 The benchmark compares recursive merge sort with a temporary allocation at
-each merge, merge sort with one reused temporary array, and C `qsort`.
+each merge, merge sort with one reused temporary array, and qsort.
 
 ```sh
 sh include/merge_sort.sh
@@ -97,7 +97,7 @@ sh include/merge_sort.sh
 - Inputs: random, sorted, reverse-sorted, and all equal
 - Repetitions: 1 by default
 - Statistic: millions of items sorted per second
-- Correctness: output is sorted and contains the original elements
+- Correctness: output is sorted and contains original elements
 
 | Example of Some Output: |
 | n, input, method, repetitions, avg_us, rate_mitems_per_s, sorted_and_preserved |
@@ -118,10 +118,10 @@ sh include/bfs.sh
 ```
 
 It creates Erdos-Renyi and RMAT graphs with $2^{20}$ vertices and
-average degree 16. Runs BFS from 16 randomly selected vertices with
-nonzero degree.
+average degree 16. Runs BFS from 16 randomly selected vertices.
 
 Results are written to `bfs_graphs/`. 
+
 | Example of Some Output [From erdos_renyi] |
 | source, levels, reached, fraction, inspected_edges, teps |
 | source=597060 frontier_sizes=1;18;296;4705;72477;650221;320836;22 
