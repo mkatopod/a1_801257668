@@ -220,6 +220,8 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
+    setvbuf(stdout, NULL, _IOLBF, 0);
+    printf("reading %s\n", argv[1]);
     graph_t graph = read_matrix_market(argv[1]);
     int *distance = malloc((size_t)graph.n * sizeof(*distance));
     int *frontier = malloc((size_t)graph.n * sizeof(*frontier));

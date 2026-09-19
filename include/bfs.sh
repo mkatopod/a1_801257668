@@ -6,7 +6,7 @@
 
 set -eu
 
-submit_dir=${SLURM_SUBMIT_DIR:-$(CDPATH= cd -- "$(diname -- "$0")/.." && pwd)}
+submit_dir=${SLURM_SUBMIT_DIR:-$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)}
 if [ -f "$submit_dir/MakeFile" ] || [ -f "$submit_dir/Makefile" ]; then
     project_dir=$submit_dir
 else
@@ -35,6 +35,8 @@ for model in erdos rmat; do
         graph_name=rmat
     fi
 
+    printf 'Generating %s graph...\n' "$graph_name"
+
     python3 - "$vertices" "$edges" "$output_dir/${graph_name}.mtx" "$model" "${BFS_SEED:-4145}" <<'PY'
 import random
 import sys
@@ -49,7 +51,7 @@ ng = random.Random(seed)
 scale = (n - 1).bit_length()
 
 with open(path, "w", buffering=1024 * 1024) as output:
-    output.write("%%MatrixMarket matrix coordinate patten symmetric\n")
+    output.write("%%MatrixMarket matrix coordinate pattern symmetric\n")
     output.write("%% generated undirected graph\n")
     output.write(f"{n} {n} {m}\n")
     written = 0
@@ -78,13 +80,18 @@ with open(path, "w", buffering=1024 * 1024) as output:
         output.write(f"{left + 1} {right + 1}\n")
         written += 1
 PY
+    printf 'Generated %s.mtx; starting BFS...\n' "$graph_name"
 done
 
 for graph in "$output_dir/erdos_renyi.mtx" "$output_dir/rmat.mtx"; do
     name=$(basename "$graph" .mtx)
     report="$output_dir/${name}.out"
     temporary_report="$report.tmp"
-    ./bfs "$graph" > "$temporary_report" 2>&1
+    if ! ./bfs "$graph" > "$temporary_report" 2>&1; then
+        mv "$temporary_report" "$report"
+        printf 'BFS failed for %s; see %s\n' "$graph" "$report" >&2
+        exit 1
+    fi
     mv "$temporary_report" "$report"
     printf '%s: ' "$name"
     awk '/teps_min=/{print; found=1} END{if (!found) exit 1}' "$report"
