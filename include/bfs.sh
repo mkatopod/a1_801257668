@@ -6,7 +6,7 @@
 
 set -eu
 
-submit_dir=${SLURM_SUBMIT_DIR:-$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)}
+submit_dir=${SLURM_SUBMIT_DIR:-$(CDPATH= cd -- "$(diname -- "$0")/.." && pwd)}
 if [ -f "$submit_dir/MakeFile" ] || [ -f "$submit_dir/Makefile" ]; then
     project_dir=$submit_dir
 else
@@ -45,23 +45,23 @@ m = int(sys.argv[2])
 path = sys.argv[3]
 model = sys.argv[4]
 seed = int(sys.argv[5]) if len(sys.argv) > 5 else 4145
-rng = random.Random(seed)
+ng = random.Random(seed)
 scale = (n - 1).bit_length()
 
 with open(path, "w", buffering=1024 * 1024) as output:
-    output.write("%%MatrixMarket matrix coordinate pattern symmetric\n")
+    output.write("%%MatrixMarket matrix coordinate patten symmetric\n")
     output.write("%% generated undirected graph\n")
     output.write(f"{n} {n} {m}\n")
     written = 0
     while written < m:
         if model == "erdos":
-            left = rng.randrange(n)
-            right = rng.randrange(n)
+            left = ng.randrange(n)
+            right = ng.randrange(n)
         else:
             row = 0
             column = 0
             for bit in range(scale):
-                draw = rng.random()
+                draw = ng.random()
                 if draw < 0.57:
                     pass
                 elif draw < 0.77:
@@ -82,9 +82,12 @@ done
 
 for graph in "$output_dir/erdos_renyi.mtx" "$output_dir/rmat.mtx"; do
     name=$(basename "$graph" .mtx)
-    ./bfs "$graph" > "$output_dir/${name}.out"
+    report="$output_dir/${name}.out"
+    temporary_report="$report.tmp"
+    ./bfs "$graph" > "$temporary_report" 2>&1
+    mv "$temporary_report" "$report"
     printf '%s: ' "$name"
-    awk '/teps_min=/{print; found=1} END{if (!found) exit 1}' "$output_dir/${name}.out"
+    awk '/teps_min=/{print; found=1} END{if (!found) exit 1}' "$report"
 done
 
 printf 'Graph files and BFS reports are in %s\n' "$output_dir"
