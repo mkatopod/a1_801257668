@@ -1,0 +1,48 @@
+Problem #1 Report
+Node Used: hostname
+Compiler Version: gcc --version
+Compile Flags: -Wall -Wextra -std=c11 -I…/include -O3 -lrt
+Number of Repetitions: 12
+Statistic Reported: bandwidth_bytes_per_s
+The two data types int and double are measured, along with the two kernel versions A and B. We also have three different input orders being ‘sorted’, ‘reverse’, and ‘random’ and the three sizes being 10^6, 10^7, and 10^8. As it went through the combinations, it ran many reparations that included measurements like median time and resulting maximum value. For example, this is the output of int A and B sorted:
+int A sorted n=1000000 reps=12 avg=215.385 us median=212.827 us min=212.629 us max=232.161 us rate=17711.063 MB/s ns/elem=0.215 result=131070
+int B sorted n=1000000 reps=12 avg=217.059 us median=212.912 us min=212.698 us max=251.940 us rate=17574.472 MB/s ns/elem=0.217 result=131070
+As I looked at each input type, they seem to all produce similar results. For the int data type, we can see that each input type only has a 1 to 2% difference compared to the double data type, where it was less than 1% of a difference. Overall, it means the input order does not affect the running time.
+Based on the output, the int kernels seem to be more higher throughput (MB/s) than the double kernels. For example, 10^6 was int = 17k MB/s vs double = 7k MB/s. This could be due to the amount of bytes each input type has.
+For plotting against n, the rate seems to decrease as n increases. An example is in int A’s sorted, where 10^6 is 17k MB/s, 10^7 is 10k MB/s, and 10^8 is 8k MB/s. This means that the performance may be more difficult to do as the array size grows.
+When sweeping, we can see that the bandwidth stays constant for some time. As the array size increases, the bandwidth seems to decrease.
+Run lscpu and record the L1, L2, and L3 cache sizes of the node. Mark them on your plot, and state how the sizes at which the bandwidth drops compare with them.
+When running lscpu and looking at L1, L2, and L3, we got L1 = 1126.4 B, L2 = 36864 KB, and L3 = 51904512 B (the values are simplified in the key on the graph). The size of the array depends on when the line drops in the graph. For example, L1 has a small decrease compared to L3 showing a tremendous decrease. 
+___________________________________________________________________________________________________________________________________
+Problem #2 Report
+Node Used: hostname
+Compiler Version: gcc --version
+Compile Flags: -Wall -Wextra -std=c11 -I…/include -O0/-O2/-O3 -lrt
+Number of Repetitions: 5
+Statistic Reported: Average runtime using microseconds, checksum, and nanoseconds per element
+Based upon the results, we can see that the prefix sum shows differences between each optimization level. -O0 is the slowest, as it has 2.4 to 2.6 ns/element. The runtime is reduced for both -O3 and -O2, showing around 0.37 ns/element. We can also see that they are both nearly identical in performance, which may mean the compiler can’t optimize the loop beyond what one of them does. The double precision operations are slower compared to the integer operations, possibly due to a higher memory bandwidth pressure and computational cost. We can also see that the checksums match the expected values.
+___________________________________________________________________________________________________________________________________
+Problem #3 Report
+Node Used: hostname
+Compiler Version: gcc --version
+Compile Flags: -Wall -Wextra -std=c11 -I…/include -O3 -lrt
+Number of Repetitions: 3
+Statistic Reported: Average runtime in microseconds and GFLOP/s
+We needed to loop six different variants of matrix multiplication, using ijk, ikj, jik, jki, kji, and kjj. Based upon the results, the fastest groups seem to be ikj and kij with about 10 to 13 GFLOPS. The slowest group is jki and kji, which both produced poorly with about 0.3 to 0.7 GFLOPS. The other two groups, ijk and jik are around 1 GFLOPS, so they are about in the middle. Each output gave a correct answer of yes as well. Overall, orders with k outermost seem to achieve high throughput and maximizes its cache reuse, compared to j outermost.
+___________________________________________________________________________________________________________________________________
+Problem #4 Report
+Node Used: hostname
+Compiler Version: gcc --version
+Compile Flags: -Wall -Wextra -std=c11 -I…/include -O3 -lrt
+Number of Repetitions: 1
+Statistic Reported: Average runtime in microseconds and lots of sorted items per second
+For merge sort, we just needed to sort an array of n integers. Based upon the results, we can see that merge_reuse is the fastest in performance, while merge_per_call is the slowest in comparison with qsort. We can also see that based on the input, the sorted and equal arrays process faster than random because of such few merges. Overall, the single-allocation merge sort or merge_reuse seems to be the best in performance and scalability. Also, every method in the output is correct when sorting and preserving.
+___________________________________________________________________________________________________________________________________
+Problem #5 Report
+Node Used: hostname
+Compiler Version: gcc --version
+Compile Flags: -Wall -Wextra -std=c11 -I…/include -O3 -lrt
+Number of Repetitions: 16
+Statistic Reported: TEPS
+Based on the results, we have two graphs generated being Erdos-Renyi and RMAT. Looking at Erdos-Renyi, it has 8 levels and its fraction reached is 1.000000. RMAT has 6 to 8 levels and its fraction reached 0.4814. Then, looking at the TEPS, Erdos-Renyi has about 16,700,000 inspected levels with the TEPs ranging from 118M to 122M, For RMAT, it has about 15,800,000 inspected levels and its TEPs ranges from 259M to 288M. Based on both graphs, RMAT seems to be 2.3 times faster than Erdos-Renyi. This is found by dividing the two medians from both graphs.
+

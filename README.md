@@ -1,55 +1,143 @@
-# Array maximum bandwidth sweep
+## Introduction
 
-From WSL, install the Python plotting dependency in a virtual environment:
+This assignment implements and measures five kernels in C on a Linux cluster. 
+All arrays use contiguous storage. Timing uses a monotonic clock.
 
-```sh
-sudo apt update
-sudo apt install python3-pip python3-venv
-python3 -m venv .venv
-. .venv/bin/activate
-python -m pip install -r requirements.txt
-```
+## Common Environment
 
-Build the benchmark on the Linux node or from WSL:
+Record these values from the cluster used for the experiments:
 
+| Item          |  Value  |
+| ---           | ---     |
+| Node          | `run hostname and enter result` |
+| Compiler      | `run gcc --version and enter result` |
+| General flags | `-Wall -Wextra -std=c11 -I.../include -lrt` |
+| Optimization  | `O3`, all but one |
+
+Build targets using:
 ```sh
 make -f MakeFile
 ```
 
-Record the node cache sizes and run the double branchless sweep:
+## Array Maximum
+
+**Files:** `src/array_max_part1.c`, `include/cache_sizes.sh`
+
+Benchmark scans integer and double arrays and reports memory bandwidth as
+the array size grows from 2 KiB to 256 MiB.
 
 ```sh
 sh include/cache_sizes.sh > include/cache_sizes.csv
 ./array_max_part1 --sweep --reps 12 > include/bandwidth.txt
 ```
 
-The sweep measures array sizes from 2 KiB through 256 MiB, doubling each
-time. Its CSV bandwidth is bytes per second, so the x-axis is already the
-required array size in bytes.
+- Repetitions: 12
+- Statistic: average bandwidth in bytes per second
+- Plot: `python include/plot_bandwidth.py include/bandwidth.txt`
 
-Create the logarithmic plot with cache markers:
+- Example of some Output
+int A sorted n=1000000 reps=12 avg=215.385 us median=212.827 us min=212.629 us max=232.161 us rate=17711.063 MB/s ns/elem=0.215 result=131070
+int B sorted n=1000000 reps=12 avg=217.059 us median=212.912 us min=212.698 us max=251.940 us rate=17574.472 MB/s ns/elem=0.217 result=131070
 
-```sh
-python include/plot_bandwidth.py include/bandwidth.txt
-```
+## Exclusive Prefix Sum
 
-This writes `bandwidth.png`. Compare the first sustained bandwidth drops with
-the vertical L1, L2, and L3 markers and report whether each drop is near the
-corresponding cache capacity.
+**Files:** `src/prefix_sum.c`, `include/prefix_sum.sh`
 
-## Exclusive prefix sum
-
-The in-place implementation is in `include/prefix_sum_part2.c`. It replaces
-each element with the running sum before that element, so the first output is
-zero. The input is refilled between repetitions, outside the timed region.
-
-From Linux or WSL, measure `n = 10^6`, `10^7`, and `10^8` for both types at all
-three requested optimization levels:
+The program computes an exclusive prefix sum for integer and double arrays.
 
 ```sh
-sh include/prefix_sum_measure.sh
+sh include/prefix_sum.sh
+```
+- Sizes: `10^6`, `10^7`, and `10^8`
+- Repetitions: 5 by default; set `REPS=12` for 12 repetitions
+- Optimization levels: `O0`, `O2`, `O3`
+- Statistics: average microseconds, ns/element, and checksum
+
+- Example of Some Output:
+optimization, type, n, reps, avg_us, ns_per_element, checksum
+O0,int, 1000000, 5, 2437.093, 2.437093, 499999
+O0,double, 1000000, 5, 2539.302, 2.539302, 499999.0
+
+
+## Dense Matrix Multiplication
+
+**Files:** `src/matrix_multiply.c`, `include/matrix_multiply.sh`
+
+The program computes $C = AB$ using flat row-major arrays and implements all
+six loop orders: `ijk`, `ikj`, `jik`, `jki`, `kij`, and `kji`.
+
+```sh
+sh include/matrix_multiply.sh
 ```
 
-This creates `prefix_sum_O0.csv`, `prefix_sum_O2.csv`, and `prefix_sum_O3.csv`.
-Use `REPS=12` to match the first benchmark or `SIZES=...` to choose a different
-size list.
+- Shapes: `256^3`, `512^3`, `1024^3`, and `256 x 512 x 1024`
+- Repetitions: 3 by default
+- Statistic: GFLOP/s
+- Correctness: every order must report `yes`
+
+- Example of Some Output: 
+M, K, N, order, reps, avg_us, gflops, correct
+256, 256, 256, ijk, 3, 17808.338, 1.884198, yes
+256, 256, 256, ikj, 3, 2576.756, 13.021967, yes
+256, 256, 256, jik, 3, 17971.383, 1.867104, yes
+
+
+## Merge Sort
+
+**Files:** `src/merge_sort.c`, `include/merge_sort.sh`
+
+The benchmark compares recursive merge sort with a temporary allocation at
+each merge, merge sort with one reused temporary array, and C `qsort`.
+
+```sh
+sh include/merge_sort.sh
+```
+
+- Sizes: `10^6`, `10^7`, and `10^8`
+- Inputs: random, sorted, reverse-sorted, and all equal
+- Repetitions: 1 by default
+- Statistic: millions of items sorted per second
+- Correctness: output is sorted and contains the original elements
+
+- Example of Some Output: 
+n, input, method, repetitions, avg_us, rate_mitems_per_s, sorted_and_preserved
+1000000, random, merge_per_call, 1, 115119.587, 8.687, yes
+1000000, random, merge_reuse, 1, 86747.895, 11.528, yes
+
+
+## Breadth-First Search
+
+**Files:** `src/bfs.c`, `include/bfs.sh`
+
+The BFS implementation reads Matrix Market graphs into CSR storage. It uses a 
+frontier array and reports every frontier size, number of levels, reached fraction,
+inspected edges, and TEPS.
+
+```sh
+sh include/bfs.sh
+```
+
+It creates Erdos-Renyi and RMAT graphs with $2^{20}$ vertices and
+average degree 16. Runs BFS from 16 randomly selected vertices with
+nonzero degree.
+
+Results are written to `bfs_graphs/`. 
+- Example of Some Output [From erdos_renyi]:
+graph=bfs_graphs/erdos_renyi.mtx vertices=1048576 undirected_edges=8388555
+source, levels, reached, fraction, inspected_edges, teps
+source=597060 frontier_sizes=1;18;296;4705;72477;650221;320836;22
+597060, 8, 1048576, 1.000000, 16777110, 122463305
+source=817875 frontier_sizes=1;26;393;6380;96437;728157;217180;2
+817875, 8, 1048576, 1.000000, 16777110, 129909583
+
+
+## Summary of Scripts
+```sh
+sh include/cache_sizes.sh
+sh include/prefix_sum.sh
+sh include/matrix_multiply.sh
+sh include/merge_sort.sh
+sh include/bfs.sh
+```
+
+For Slurm submission, use `sbatch` and not `sh`.
